@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>干支纪年</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .circles-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .circles-container {
+            position: relative;
+            width: 420px;
+            height: 260px;
+        }
+
+        .circle {
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease-out;
+        }
+
+        .circle-left {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: 3px solid #e91e63;
+            box-shadow: 0 10px 30px rgba(233, 30, 99, 0.3);
+            left: 50px;
+            top: 60px;
+        }
+
+        .circle-right {
+            width: 168px;
+            height: 168px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: 3px solid #2196f3;
+            box-shadow: 0 10px 30px rgba(33, 150, 243, 0.3);
+            left: 190px;
+            top: 46px;
+        }
+
+        .character {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            --rotation: 0deg;
+            transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px))) rotate(var(--rotation));
+        }
+
+        .character.active {
+            font-size: 18px;
+            color: #ffeb3b;
+            text-shadow: 0 0 10px rgba(255, 235, 59, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .year-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .ganzhi-display {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .slider-container {
+            width: 100%;
+            max-width: 350px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .year-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .year-input input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 120px;
+            text-align: center;
+        }
+
+        .year-input button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .year-input button:hover {
+            transform: scale(1.05);
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>干支纪年</h1>
+        
+        <div class="circles-wrapper">
+            <div class="circles-container">
+                <div class="circle circle-left" id="tianGanCircle"></div>
+                <div class="circle circle-right" id="diZhiCircle"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="ganzhi-display" id="ganZhiText">丙午年</div>
+            <div class="year-display"><span id="yearDisplay">2026</span> 年</div>
+            <div class="slider-container">
+                <input type="range" id="yearSlider" min="1" max="10000" value="2026">
+            </div>
+            <div class="year-input">
+                <input type="number" id="yearInput" value="2026" min="1" max="10000">
+                <button id="goBtn">前往</button>
+            </div>
+            <div class="info-text">左圆顺时针36°/年 | 右圆逆时针30°/年 | 文字垂直</div>
+        </div>
+    </div>
+
+    <script>
+        // 左圆（天干）：顺时针排列 丙0°、丁36°...乙324°
+        const tianGanData = [
+            { char: '丙', angle: 0 },
+            { char: '丁', angle: 36 },
+            { char: '戊', angle: 72 },
+            { char: '己', angle: 108 },
+            { char: '庚', angle: 144 },
+            { char: '辛', angle: 180 },
+            { char: '壬', angle: 216 },
+            { char: '癸', angle: 252 },
+            { char: '甲', angle: 288 },
+            { char: '乙', angle: 324 }
+        ];
+
+        // 右圆（地支）：逆时针排列 子0°、丑330°...亥30°
+        const diZhiData = [
+            { char: '子', angle: 0 },
+            { char: '丑', angle: 330 },
+            { char: '寅', angle: 300 },
+            { char: '卯', angle: 270 },
+            { char: '辰', angle: 240 },
+            { char: '巳', angle: 210 },
+            { char: '午', angle: 180 },
+            { char: '未', angle: 150 },
+            { char: '申', angle: 120 },
+            { char: '酉', angle: 90 },
+            { char: '戌', angle: 60 },
+            { char: '亥', angle: 30 }
+        ];
+
+        // 计算干支
+        function getGanZhi(year) {
+            const offset = year - 1984;
+            const tianGanIndex = ((offset % 10) + 10) % 10;
+            const diZhiIndex = ((offset % 12) + 12) % 12;
+            
+            const tianGan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+            const diZhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            
+            return {
+                tianGan: tianGan[tianGanIndex],
+                diZhi: diZhi[diZhiIndex]
+            };
+        }
+
+        // 创建文字：用户角度转CSS角度，文字不旋转
+        function createCharacters(circleId, data, radius) {
+            const circle = document.getElementById(circleId);
+            if (!circle) return;
+            
+            circle.innerHTML = '';
+            
+            data.forEach((item) => {
+                // 用户角度顺时针，CSS角度逆时针（数学标准）
+                const cssAngle = -item.angle * Math.PI / 180;
+                const x = radius * Math.cos(cssAngle);
+                const y = radius * Math.sin(cssAngle);
+                
+                const span = document.createElement('span');
+                span.className = 'character';
+                span.textContent = item.char;
+                span.dataset.char = item.char;
+                span.style.left = '50%';
+                span.style.top = '50%';
+                span.style.setProperty('--x', `${x}px`);
+                span.style.setProperty('--y', `${y}px`);
+                
+                circle.appendChild(span);
+            });
+        }
+
+        function updateDisplay(year) {
+            const ganZhi = getGanZhi(year);
+            const offset = year - 2026;
+            
+            // 左圆：年份+1顺时针转动36度
+            // 2026年丙在0°，已经在相切处
+            const leftRotation = offset * 36;
+            
+            // 右圆：年份+1逆时针转动30度
+            // 2026年午在180°，已经在相切处
+            const rightRotation = -offset * 30;
+            
+            const leftCircle = document.getElementById('tianGanCircle');
+            const rightCircle = document.getElementById('diZhiCircle');
+            
+            // 旋转圆
+            if (leftCircle) leftCircle.style.transform = `rotate(${leftRotation}deg)`;
+            if (rightCircle) rightCircle.style.transform = `rotate(${rightRotation}deg)`;
+            
+            // 文字反向旋转保持垂直
+            leftCircle.querySelectorAll('.character').forEach(char => {
+                char.style.setProperty('--rotation', `${-leftRotation}deg`);
+            });
+            
+            rightCircle.querySelectorAll('.character').forEach(char => {
+                char.style.setProperty('--rotation', `${-rightRotation}deg`);
+            });
+            
+            // 高亮相切处
+            document.querySelectorAll('.character').forEach(c => c.classList.remove('active'));
+            
+            const leftActive = leftCircle.querySelector(`[data-char="${ganZhi.tianGan}"]`);
+            if (leftActive) leftActive.classList.add('active');
+            
+            const rightActive = rightCircle.querySelector(`[data-char="${ganZhi.diZhi}"]`);
+            if (rightActive) rightActive.classList.add('active');
+            
+            document.getElementById('yearDisplay').textContent = year;
+            document.getElementById('ganZhiText').textContent = ganZhi.tianGan + ganZhi.diZhi + '年';
+            document.getElementById('yearSlider').value = year;
+            document.getElementById('yearInput').value = year;
+        }
+
+        function init() {
+            createCharacters('tianGanCircle', tianGanData, 58);
+            createCharacters('diZhiCircle', diZhiData, 70);
+            updateDisplay(2026);
+            
+            document.getElementById('yearSlider').addEventListener('input', (e) => updateDisplay(parseInt(e.target.value)));
+            document.getElementById('goBtn').addEventListener('click', () => {
+                const year = parseInt(document.getElementById('yearInput').value);
+                if (year >= 1 && year <= 10000) updateDisplay(year);
+            });
+            document.getElementById('yearInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') document.getElementById('goBtn').click();
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
